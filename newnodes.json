@@ -1,0 +1,14 @@
+{
+    "nodes":[
+        {
+            "mac": [
+                "2c:c2:60:01:02:06"
+            ],
+            "name": "compute02",
+            "pm_addr": "192.0.2.225",
+            "pm_password": "redhat",
+            "pm_type": "pxe_ipmitool",
+            "pm_user": "admin"
+        }
+    ]
+}
