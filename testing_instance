@@ -1,0 +1,10 @@
+curl -o /tmp/cirros.qcow2 http://download.cirros-cloud.net/0.3.5/cirros-0.3.5-x86_64-disk.img
+openstack image create cirros --disk-format qcow2 --container-format bare --public  --file /tmp/cirros.qcow2
+internal_net=$(openstack network show internal -c id -f value)
+openstack server create overcloud-test --image cirros --flavor m1.tiny --nic net-id=$internal_net
+openstack server list
+openstack ip floating create management
+openstack ip floating add 172.16.0.211 overcloud-test
+openstack security group rule create default --dst-port 22
+openstack security group rule create default --proto icmp
+ssh cirros@172.16.0.211 uname -a
