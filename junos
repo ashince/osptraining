@@ -1,0 +1,26 @@
+---
+- name: Application Migration
+  hosts: 10.10.155.197
+  remote_user: root
+  become_user: root
+  become_method: sudo
+  tasks:
+
+   - include_vars:
+       file: vars.yml
+   - name: create and copy
+     copy:
+       content: routing-options {static{ route {{item}} next-hop 192.168.100.1;}}
+       dest: /home/hello.txt
+     with_items:
+       - '{{fpips}}'
+
+
+
+
+---
+fpips:
+    - 1.1.1.1/24
+    - 3.3.3.3/24
+    - 2.2.2.2/24
+    - 4.4.4.4/24
