@@ -1,0 +1,16 @@
+---
+- name: Application Migration
+  hosts: ashince
+  remote_user: root
+  become_user: root
+  become_method: sudo
+  tasks:
+   - include_vars:
+       file: vars.yml
+  pre_tasks:
+    - include_vars:
+        file: vars.yml
+    - set_fact:
+        foo_ncpu: "{{ fpips }}"
+  roles:
+   - { role: preparefile, fpips: "{{ foo_ncpu }}" }
