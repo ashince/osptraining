@@ -34,7 +34,8 @@
    tasks:
     - include_vars:
         file: vars.yml
-    - shell: var="routing-options {static{ route {{item}} next-hop 192.168.100.1;}}" && cd tmp&& echo $var >> {{item}}
+    - shell: mkdir tmp
+    - shell: var="routing-options {static{ route {{item}} next-hop 192.168.100.1;}}" && cd tmp && echo $var >>  $(echo {{item}} | cut -d'/' -f1)
       with_items: "{{fpips}}"
     - name: load merge a configuration file
       junos_install_config: host=10.10.155.197 user=test passwd=test
