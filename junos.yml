@@ -1,0 +1,46 @@
+---
+- name: Application Migration
+  hosts: 10.10.155.131
+  remote_user: root
+  become_user: root
+  become_method: sudo
+  gather_facts: no
+  tasks:
+   - name: Gathering external network details from osp
+     script: script.sh
+   - fetch:
+      src: /root/testpass/newfile
+      dest: /root/junos
+   - fetch:
+      src: /root/testpass/newfile
+      dest: /root/junos
+
+- hosts: 10.10.155.197
+  remote_user: root
+  become_user: root
+  become_method: sudo
+  gather_facts: no
+  tasks:
+   - name: setting up playbook
+     shell: mv /root/junos/10.10.155.131/root/testpass/newfile /root/junos/newfile
+
+- hosts: 10.10.155.131
+  remote_user: root
+  become_user: root
+  become_method: sudo
+  gather_facts: no
+  roles:
+     - Juniper.junos
+   tasks:
+    - include_vars:
+        file: vars.yml
+    - shell: var="routing-options {static{ route {{item}} next-hop 192.168.100.1;}}" && cd tmp&& echo $var >> {{item}}
+      with_items: "{{fpips}}"
+    - name: load merge a configuration file
+      junos_install_config: host=10.10.155.197 user=test passwd=test
+        file=/root/tmp/{{item}}
+        overwrite=false
+      with_items:
+        - "{{fpips}}"
+    - name: flushing configs
+      shell: rm -rI /root/tmp
