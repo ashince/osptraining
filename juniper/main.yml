@@ -1,0 +1,56 @@
+---
+- name: Gather Networks
+  hosts: osp
+  remote_user: root
+  become_user: root
+  become_method: sudo
+  gather_facts: no
+  tasks:
+   - name: Gathering external network details from osp
+     script: script.sh
+   - fetch:
+      src: /root/hello.yml
+      dest: /root/ansible-poc
+   - fetch:
+      src: /root/vars.yml
+      dest: /root/ansible-poc
+   - shell: rm -r external.networks hello.txt ipsubnet vars.yml hello.yml
+
+- hosts: ansible
+  remote_user: root
+  become_user: root
+  become_method: sudo
+  gather_facts: no
+  tasks:
+   - name: setting up playbook
+     shell: mv /root/ansible-poc/192.168.100.33/root/* /root/ansible-poc/
+   - shell: cd /root/ansible-poc && rm -r 192.168.100.33 --force
+
+- hosts: ansible
+  remote_user: root
+  become_user: root
+  become_method: sudo
+  gather_facts: no
+  tasks:
+    - include_vars:
+        file: vars.yml
+    - shell: mkdir /root/ansible-poc/confs
+    - shell: var="routing-options {static{ route {{item}} next-hop 192.168.100.1;}}" && cd /root/ansible-poc/confs && echo $var >>  $(echo {{item}} | cut -d'/' -f1).conf
+      with_items: "{{fpips}}"
+
+- hosts: juniper
+  remote_user: root
+  become_user: root
+  become_method: sudo
+  gather_facts: no
+  roles:
+    - Juniper.junos
+  tasks:
+    - include_vars:
+        file: hello.yml
+    - name: load merge a configuration file
+      junos_install_config: host={{ ansible_ssh_host }} user={{ juniper_user }} passwd={{ juniper_passwd }}
+        file=/root/ansible-poc/confs/{{item}}.conf
+        overwrite=false
+      with_items:
+        - "{{fpips}}"
